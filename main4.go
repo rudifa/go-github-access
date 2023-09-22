@@ -28,7 +28,7 @@ func main4() {
 	// Loop over all pages of the repository list
 	for {
 		// Create the request
-		req, err := http.NewRequest("GET", fmt.Sprintf("https://api.github.com/users/octocat/repos?page=%d&per_page=%d", page, perPage), nil)
+		req, err := http.NewRequest("GET", fmt.Sprintf("https://api.github.com/users/rudifa/repos?page=%d&per_page=%d", page, perPage), nil)
 		if err != nil {
 			fmt.Println("Error creating request:", err)
 			return
@@ -37,9 +37,9 @@ func main4() {
 		// Set the User-Agent header
 		req.Header.Set("User-Agent", "my-app")
 		// Set the Authorization header with your access token
-		token := getEnvVar("GITHUB_TOKEN")
-		fmt.Println("token:", token)
-		req.Header.Set("Authorization", "Bearer "+token)
+		// token := getEnvVar("GITHUB_TOKEN")
+		// fmt.Println("token:", token)
+		// req.Header.Set("Authorization", "Bearer "+token)
 
 		// Send the request
 		resp, err := client.Do(req)
@@ -103,14 +103,14 @@ func parseLinkHeader(linkHeader string) map[string]string {
 }
 
 func getEnvVar(varname string) string {
-    // Load the environment variables from the .env file
-    err := godotenv.Load(".env")
-    if err != nil {
-        log.Fatal("Error loading .env file")
-    }
+	// Load the environment variables from the .env file
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
-    // Get the value of the environment variable
-    value := os.Getenv(varname)
+	// Get the value of the environment variable
+	value := os.Getenv(varname)
 
 	// Return the environment variable value
 	return value
