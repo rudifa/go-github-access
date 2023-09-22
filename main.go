@@ -1,10 +1,11 @@
+/*
+Copyright © 2023 @rudifa Rudolf Farkas rudi.farkas@gmail.com
+License MIT
+*/
 package main
 
-import "fmt"
+import "github.com/rudifa/go-github-access/cmd"
 
 func main() {
-	fmt.Println("Here we go")
-
-	//main3()
-	main4()
+	cmd.Execute()
 }

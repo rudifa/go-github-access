@@ -2,11 +2,11 @@
 
 ## Notes
 
-### main3
-
 Unauthenticated requests are limited to 60 per hour.
-To get more requests, you need to authenticate.
+To get more requests (5000 per hour), you need to authenticate with a github token (classic).
 
-### main4
+This version requires a .env file with
 
-The authentication in main4.go does not work.
+```
+GITHUB_TOKEN=ghp_...
+```

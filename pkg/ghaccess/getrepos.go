@@ -1,4 +1,4 @@
-package main
+package ghaccess
 
 import (
 	"encoding/json"
@@ -11,13 +11,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// type Repository struct {
-//     Name        string `json:"name"`
-//     Description string `json:"description"`
-//     URL         string `json:"html_url"`
-// }
+type Repository struct {
+    Name        string `json:"name"`
+    Description string `json:"description"`
+    URL         string `json:"html_url"`
+}
 
-func main4() {
+func GetRepos(user string) {
 	// Set up the HTTP client
 	client := &http.Client{}
 
@@ -28,7 +28,7 @@ func main4() {
 	// Loop over all pages of the repository list
 	for {
 		// Create the request
-		req, err := http.NewRequest("GET", fmt.Sprintf("https://api.github.com/users/rudifa/repos?page=%d&per_page=%d", page, perPage), nil)
+		req, err := http.NewRequest("GET", fmt.Sprintf("https://api.github.com/users/%s/repos?page=%d&per_page=%d", user, page, perPage), nil)
 		if err != nil {
 			fmt.Println("Error creating request:", err)
 			return
@@ -37,9 +37,9 @@ func main4() {
 		// Set the User-Agent header
 		req.Header.Set("User-Agent", "my-app")
 		// Set the Authorization header with your access token
-		// token := getEnvVar("GITHUB_TOKEN")
+		token := getEnvVar("GITHUB_TOKEN")
 		// fmt.Println("token:", token)
-		// req.Header.Set("Authorization", "Bearer "+token)
+		req.Header.Set("Authorization", "Bearer "+token)
 
 		// Send the request
 		resp, err := client.Do(req)
