@@ -3,21 +3,56 @@ package ghaccess
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/joho/godotenv"
+	"github.com/rudifa/goutil/fjson"
+	"github.com/rudifa/goutil/util"
 )
 
-type Repository struct {
-    Name        string `json:"name"`
-    Description string `json:"description"`
-    URL         string `json:"html_url"`
+// Mode is the output mode -----------------------------------------------
+type Mode string
+
+// Valid modes
+const (
+	String Mode = "string"
+	JSON   Mode = "json"
+	Data   Mode = "data"
+)
+
+// Modes is the list of valid Mode values
+var Modes = []Mode{String, JSON, Data}
+
+// ParseMode parses a string into a Mode value
+func ParseMode(modeStr string) (Mode, error) {
+    for _, mode := range Modes {
+        if string(mode) == modeStr {
+            return mode, nil
+        }
+    }
+    return "", fmt.Errorf("invalid mode: %s", modeStr)
 }
 
-func GetRepos(user string) {
+// ModeStrings returns the list of valid Mode values as strings
+func ModeStrings() []string {
+	return util.Map(Modes, func(m Mode) string {
+		return string(m)
+	})
+}
+
+// Repository represents a GitHub repository
+type Repository struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	URL         string `json:"html_url"`
+}
+
+// GetRepos gets the list of repositories for the given user and prints them
+func GetRepos(user string, mode Mode) {
 	// Set up the HTTP client
 	client := &http.Client{}
 
@@ -33,6 +68,8 @@ func GetRepos(user string) {
 			fmt.Println("Error creating request:", err)
 			return
 		}
+
+		log.Println("req:", req)
 
 		// Set the User-Agent header
 		req.Header.Set("User-Agent", "my-app")
@@ -55,24 +92,21 @@ func GetRepos(user string) {
 			return
 		}
 
-		// Parse the response
-		var repos []Repository
-		err = json.NewDecoder(resp.Body).Decode(&repos)
-		if err != nil {
-			fmt.Println("Error parsing response:", err)
-			return
+		switch mode {
+		case String:
+			err = printAsString(resp)
+		case JSON:
+			err = printAsJSON(resp)
+		case Data:
+			err = printAsData(resp)
 		}
-
-		// Print the repository information
-		for _, repo := range repos {
-			fmt.Println("Name:", repo.Name)
-			fmt.Println("Description:", repo.Description)
-			fmt.Println("URL:", repo.URL)
-			fmt.Println()
+		if err != nil {
+			return
 		}
 
 		// Check if there are more pages
 		linkHeader := resp.Header.Get("Link")
+		log.Println("linkHeader:", linkHeader)
 		if linkHeader == "" {
 			break
 		}
@@ -84,6 +118,52 @@ func GetRepos(user string) {
 		// Update the page number
 		page++
 	}
+}
+
+func printAsData(resp *http.Response) error {
+	var repos []Repository
+	err := json.NewDecoder(resp.Body).Decode(&repos)
+	if err != nil {
+		fmt.Println("Error parsing response:", err)
+		return err
+	}
+
+	for _, repo := range repos {
+		fmt.Println("Name:", repo.Name)
+		fmt.Println("Description:", repo.Description)
+		fmt.Println("URL:", repo.URL)
+		fmt.Println()
+	}
+	return nil
+}
+
+func printAsJSON(resp *http.Response) error {
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading body:", err)
+		return err
+	}
+
+	log.Println("len(body):", len(body))
+
+	pretty, err := fjson.Prettyfmt(string(body))
+	if err != nil {
+		fmt.Println("Error marshalling JSON:", err)
+		return err
+	}
+
+	fmt.Println(string(pretty))
+	return nil
+}
+
+func printAsString(resp *http.Response) error {
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error reading body:", err)
+		return err
+	}
+	fmt.Println(string(body))
+	return nil
 }
 
 func parseLinkHeader(linkHeader string) map[string]string {
