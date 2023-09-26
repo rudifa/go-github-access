@@ -6,3 +6,4 @@ main
 
 .env*
 
+.tmp/
